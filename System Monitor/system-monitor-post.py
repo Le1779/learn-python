@@ -7,7 +7,6 @@ import time
 import psutil
 import json
 
-device_id = 0;
 device_name = '';
 device_mac_address = '';
 doc = {
@@ -43,7 +42,7 @@ def get_device_id():
     if r.status_code == requests.codes.ok:
         return r.json()['id']
     else:
-        return 'null'
+        return 0
 
 def get_cpu_info():
     cpu_core = psutil.cpu_count(logical=False);
@@ -95,7 +94,7 @@ def get_network_info():
     doc['network']['send'] = bytes_sent;
     doc['network']['usage'] = bytes_usage;
 
-def post_device_info():
+def post_device_info(device_id):
     post_data = {'deviceId':device_id, 'cpu':json.dumps(doc['cpu']), 'memory':json.dumps(doc['memory']), 'disk':json.dumps(doc['disk']), 'network':json.dumps(doc['network'])}
     r = requests.post('http://localhost:62633/DeviceInfo/InsertInfo', data = post_data)
     if r.status_code == requests.codes.ok:
@@ -141,7 +140,7 @@ def startTask():
     get_disk_info()
     get_network_info()
     showData()
-    post_device_info()
+    post_device_info(device_id)
     timedTask()
 
 def timedTask():
