@@ -29,10 +29,12 @@ doc = {
 }
 
 def get_device_name():
+    global device_name
     device_name = socket.gethostname()
     print(device_name)
 
 def get_device_mac_address():
+    global device_mac_address
     device_mac_address = ':'.join(("%012X" % get_mac())[i:i+2] for i in range(0, 12, 2))
     print(device_mac_address)
 
@@ -64,6 +66,7 @@ def get_memory_info():
     doc['memory']['usage_rate'] = memory_usage_rate;
 
 def get_disk_info():
+    doc['disk'] = []
     disk_info = psutil.disk_partitions();
     for i in disk_info:
         if(i.fstype == 'NTFS'):
@@ -85,10 +88,13 @@ def get_network_info():
     net = psutil.net_io_counters();
     bytes_receive = net.bytes_recv;
     bytes_sent = net.bytes_sent;
-
     bytes_all = bytes_receive + bytes_sent;
+
     time.sleep(1);
-    bytes_usage = bytes_receive + bytes_sent - bytes_all;
+    net = psutil.net_io_counters();
+    bytes_receive = net.bytes_recv - bytes_receive
+    bytes_sent = net.bytes_sent - bytes_sent    
+    bytes_usage = net.bytes_recv + net.bytes_sent - bytes_all
 
     doc['network']['receive'] = bytes_receive;
     doc['network']['send'] = bytes_sent;
@@ -96,7 +102,7 @@ def get_network_info():
 
 def post_device_info(device_id):
     post_data = {'deviceId':device_id, 'cpu':json.dumps(doc['cpu']), 'memory':json.dumps(doc['memory']), 'disk':json.dumps(doc['disk']), 'network':json.dumps(doc['network'])}
-    r = requests.post('http://localhost:62633/DeviceInfo/InsertInfo', data = post_data)
+    r = requests.post('http://dfo.dynacw.com:57555/DeviceInfo/InsertInfo', data = post_data)
     if r.status_code == requests.codes.ok:
         print('success')
     else:
@@ -127,13 +133,15 @@ def showDiskInfo(name, total, used, free, usage_rate):
     print ('硬碟{0} 總共:{1}GB 使用:{2}GB 剩餘:{3}GB 使用率:{4}%'.format(name, total, used, free, usage_rate));
 
 def showNetword(receive, send, usage):
-    print ('網路 接收:{0:.2f} 送出:{1:.2f} 使用:{2:.3f}'.format(receive/1024./1024, send/1024./1024, usage/1024./1024.*8));
+    print ('網路 接收:{0:.2f} 送出:{1:.2f} 使用:{2:.3f}'.format(receive/1024.*8, send/1024.*8, usage/1024.*8));
 
 def startTask():
     get_device_name()
     get_device_mac_address()
     device_id = get_device_id()
     if(device_id == 0):
+        print("connect fail")
+        timedTask()
         return
     get_cpu_info()
     get_memory_info()
