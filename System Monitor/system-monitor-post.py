@@ -136,20 +136,25 @@ def showNetword(receive, send, usage):
     print ('網路 接收:{0:.2f} 送出:{1:.2f} 使用:{2:.3f}'.format(receive/1024.*8, send/1024.*8, usage/1024.*8));
 
 def startTask():
-    get_device_name()
-    get_device_mac_address()
-    device_id = get_device_id()
-    if(device_id == 0):
-        print("connect fail")
+    try:
+        get_device_name()
+        get_device_mac_address()
+        device_id = get_device_id()
+        if(device_id == 0):
+            print("connect fail")
+            timedTask()
+            return
+        get_cpu_info()
+        get_memory_info()
+        get_disk_info()
+        get_network_info()
+        showData()
+        post_device_info(device_id)
         timedTask()
-        return
-    get_cpu_info()
-    get_memory_info()
-    get_disk_info()
-    get_network_info()
-    showData()
-    post_device_info(device_id)
-    timedTask()
+    except:
+        print("error")
+        timedTask()
+    
 
 def timedTask():
     Timer(60, startTask, ()).start()
