@@ -13,7 +13,12 @@ for sheet in wb.worksheets:
         if cell.value == None:
             continue
 
-        cell.font = Font(name=cell.value)
+        if count != 1:
+            fontName = sheet.cell(row = i, column = 3).value
+            print(fontName)
+            cell.font = Font(name=fontName)
+        else:
+            cell.font = Font(name=cell.value)
     count = count + 1
 
 wb.save('result.xlsx')
